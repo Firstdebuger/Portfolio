@@ -147,11 +147,43 @@ section.block{padding:88px 0 8px}
 .step p{font-size:14.5px;line-height:1.45;color:var(--mute);margin:0}
 
 /* навыки */
-.skills{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:1px solid var(--line)}
-.skill{padding:26px 22px 26px 0;border-bottom:1px solid var(--line)}
-.skill + .skill{padding-left:22px;border-left:1px solid var(--line)}
-.skill b{display:block;font-size:19px;font-weight:650;margin-bottom:6px}
-.skill span{font-size:14.5px;color:var(--mute);line-height:1.45;display:block}
+.head.center{justify-content:center;text-align:center}
+.skills{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.skill{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;text-align:center;transition:border-color .3s,transform .3s}
+.skill:hover{border-color:#3d3d48;transform:translateY(-3px)}
+.skill .viz{height:132px;display:grid;place-items:center;background:#0d0d11;border-bottom:1px solid var(--line);overflow:hidden}
+.skill .txt{padding:18px 16px 22px}
+.skill .txt b{display:block;font-size:19px;font-weight:650;margin-bottom:6px}
+.skill .txt span{font-size:14.5px;color:var(--mute);line-height:1.45;display:block}
+/* монтаж: дорожки и бегущий ползунок */
+.vz-cut{position:relative;width:80%;display:grid;gap:7px}
+.vz-cut .trk{display:flex;gap:4px;height:16px}
+.vz-cut .trk i{display:block;border-radius:4px;opacity:.9}
+.vz-cut .wave{height:14px;border-radius:4px;background:repeating-linear-gradient(90deg,#3a3a46 0 2px,transparent 2px 5px)}
+.vz-cut .ph{position:absolute;top:-12px;bottom:-10px;left:2%;width:2px;margin-left:-1px;background:#fff;animation:vz-ph 3.6s ease-in-out infinite alternate}
+.vz-cut .ph::before{content:"";position:absolute;top:-3px;left:-6px;width:14px;height:11px;background:#fff;border-radius:3px 3px 7px 7px}
+@keyframes vz-ph{to{left:98%}}
+/* цвет: палитра, которая всё время меняется */
+.vz-color{display:flex;width:80%;height:66px;border-radius:10px;overflow:hidden;animation:vz-hue 8s linear infinite}
+.vz-color i{flex:1 1 0;animation:vz-sw 3.6s ease-in-out infinite}
+.vz-color i:nth-child(2){animation-delay:-.7s}.vz-color i:nth-child(3){animation-delay:-1.4s}
+.vz-color i:nth-child(4){animation-delay:-2.1s}.vz-color i:nth-child(5){animation-delay:-2.8s}
+@keyframes vz-hue{to{filter:hue-rotate(360deg)}}
+@keyframes vz-sw{50%{flex-grow:2.4}}
+/* титры: печатная машинка */
+.vz-type{font-family:"Courier New",Courier,monospace;font-weight:700;font-size:17px;letter-spacing:.06em;color:#f2efe9;white-space:nowrap}
+.vz-type i{display:inline-block;width:9px;height:1.05em;margin-left:2px;vertical-align:text-bottom;background:var(--accent);animation:caret 1s steps(1) infinite}
+/* субтитры: быстрая смена шрифтов */
+.vz-subs{width:86%;height:44px;display:grid;place-items:center;background:rgba(0,0,0,.72);border-radius:8px;overflow:hidden;white-space:nowrap;font-size:19px;color:#fff}
+/* форматы: кадр переворачивается из 16:9 в 9:16 */
+.vz-fmt{position:relative;width:112px;height:63px;border:2px solid var(--accent);border-radius:9px;background:rgba(233,184,114,.1);animation:vz-fmt 4.4s cubic-bezier(.7,0,.3,1) infinite}
+.vz-fmt b{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:650;color:var(--accent)}
+.vz-fmt .h{animation:vz-h 4.4s linear infinite}.vz-fmt .v{animation:vz-v 4.4s linear infinite}
+@keyframes vz-fmt{0%,38%{width:112px;height:63px}50%,88%{width:54px;height:96px}100%{width:112px;height:63px}}
+@keyframes vz-h{0%,38%{opacity:1}44%,94%{opacity:0}100%{opacity:1}}
+@keyframes vz-v{0%,44%{opacity:0}50%,88%{opacity:1}94%,100%{opacity:0}}
+.step.wide .who{margin-top:0}
+.step.wide .frame{margin-top:14px}
 
 /* контакты */
 .contact{padding:110px 0 90px;text-align:center}
@@ -191,8 +223,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .flow{grid-template-columns:1fr;gap:28px}
   .ai-grid{grid-template-columns:1fr 1fr;gap:12px}
   .ai{padding:20px 16px}
-  .skills{grid-template-columns:1fr 1fr}
-  .skill,.skill + .skill{padding:20px 14px 20px 0;border-left:0}
+  .skills{grid-template-columns:1fr 1fr;gap:12px}
+  .skill:last-child{grid-column:1/-1}
   section.block{padding-top:64px}
   .lb{grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow:auto}
   .stage{padding:60px 0 0}
@@ -209,7 +241,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .shot img,.shot video,.btn,.play{transition:none}
-  [class*="lg-"] svg,[class*="lg-"] svg *,#tagline.sw{animation:none!important}
+  [class*="lg-"] svg,[class*="lg-"] svg *,#tagline.sw,.viz *{animation:none!important}
   .glow,.tool{transition:none}
 }
 </style>
@@ -261,7 +293,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 <section class="block" id="skills-block">
   <div class="wrap">
-    <div class="head"><span class="num" id="skillsNum"></span><h2>Что делаю</h2></div>
+    <div class="head center"><h2>Что делаю</h2></div>
     <div class="skills" id="skills"></div>
   </div>
 </section>
@@ -460,18 +492,52 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
             }, 30);
           }, { threshold: .5 }).observe(m); }
         }
-        fr.appendChild(m); st.appendChild(fr);
+        fr.appendChild(m); if (s.kind !== "prompt") st.appendChild(fr);
         var who = el("div", "who"); who.appendChild(el("span", "n", ("0" + (i + 1)).slice(-2)));
         if (s.tool && LOGOS[s.tool]) { var mi = el("span", "mini lg-" + s.tool); mi.innerHTML = LOGOS[s.tool]; mi.setAttribute("aria-hidden", "true"); who.appendChild(mi) }
         who.appendChild(el("b", null, s.label)); st.appendChild(who);
         if (s.kind !== "prompt") st.appendChild(el("p", null, s.text));
-        else st.appendChild(el("p", null, s.note || ""));
+        else { st.appendChild(el("p", null, s.note || "")); st.appendChild(fr) }   // промт — под подписью ChatGPT
         $("aiFlow").appendChild(st);
       });
     }
   }
-  $("skillsNum").textContent = ("0" + nextNum).slice(-2);
-  P.skills.forEach(function(s){ var d = el("div","skill"); d.appendChild(el("b",null,s[0])); d.appendChild(el("span",null,s[1])); $("skills").appendChild(d) });
+  // «Что делаю»: у каждой карточки свой живой фон
+  var VIZ = {
+    cut: '<div class="vz-cut"><div class="trk"><i style="width:34%;background:#e9b872"></i><i style="width:22%;background:#7c8cff"></i><i style="width:32%;background:#d97757"></i></div>' +
+         '<div class="trk"><i style="width:20%;background:#3ee0cf;margin-left:9%"></i><i style="width:44%;background:#9b72cb"></i></div><div class="wave"></div><span class="ph"></span></div>',
+    color: '<div class="vz-color"><i style="background:#1b2a41"></i><i style="background:#c4553b"></i><i style="background:#e9b872"></i><i style="background:#3e8e7e"></i><i style="background:#f2efe9"></i></div>',
+    titles: '<div class="vz-type"><span></span><i></i></div>',
+    subs: '<div class="vz-subs"><span>Субтитры</span></div>',
+    formats: '<div class="vz-fmt"><b class="h">16:9</b><b class="v">9:16</b></div>'
+  };
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  P.skills.forEach(function(s){
+    var d = el("div", "skill"), vz = el("div", "viz"), tx = el("div", "txt");
+    vz.innerHTML = VIZ[s[2]] || ""; vz.setAttribute("aria-hidden", "true");
+    tx.appendChild(el("b", null, s[0])); tx.appendChild(el("span", null, s[1]));
+    d.appendChild(vz); d.appendChild(tx); $("skills").appendChild(d);
+  });
+  // титры печатаются, как на машинке: набор, пауза, стирание, следующая фраза
+  var ty = document.querySelector(".vz-type span");
+  if (ty) {
+    var words = P.typed || ["ТИТРЫ"], wi = 0, ci = 0, dir = 1, wait = 0;
+    if (calm) ty.textContent = words[0];
+    else setInterval(function(){
+      if (wait > 0) { wait--; return }
+      ci += dir; ty.textContent = words[wi].slice(0, ci);
+      if (dir > 0 && ci >= words[wi].length) { dir = -1; wait = 14 }
+      else if (dir < 0 && ci <= 0) { dir = 1; wi = (wi + 1) % words.length; wait = 3 }
+    }, 85);
+  }
+  // субтитры: шрифт меняется несколько раз в секунду
+  var sb = document.querySelector(".vz-subs span");
+  if (sb && !calm) {
+    var fonts = ["700 19px Georgia,serif", "400 21px Impact,sans-serif", "700 18px 'Courier New',monospace", "900 18px 'Arial Black',sans-serif",
+      "italic 400 20px 'Times New Roman',serif", "700 18px Verdana,sans-serif", "400 20px 'Segoe Script','Comic Sans MS',cursive",
+      "700 19px 'Trebuchet MS',sans-serif", "italic 700 19px Georgia,serif", "400 19px Tahoma,sans-serif"], fi = 0;
+    setInterval(function(){ fi = (fi + 1) % fonts.length; sb.style.font = fonts[fi] }, 170);
+  }
 
   // контакты (показываются, только если заполнены в works.js)
   var c = P.contacts || {}, row = $("contactRow");
