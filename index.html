@@ -119,15 +119,24 @@ section.block{padding:88px 0 8px}
 @keyframes ai-pulse{0%,100%{transform:scale(.88)}50%{transform:scale(1.08)}}
 
 /* пример: фото → промт → цвет → видео */
-.ex{margin-top:64px}
-.ex h3{font-size:clamp(24px,2.6vw,34px);line-height:1.1;letter-spacing:-.02em;margin:0 0 8px;font-weight:700}
-.ex > p{color:var(--mute);font-size:15px;margin:0 0 26px}
-.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:30px}
+.flow{display:grid;grid-template-columns:1fr 1fr;gap:34px 26px}
+.step.wide{grid-column:1/-1}
 .frame{position:relative}
-.step:not(:last-child) .frame::after{content:"→";position:absolute;right:-24px;top:50%;transform:translateY(-50%);width:18px;text-align:center;color:var(--accent);font-size:18px}
 .media{aspect-ratio:4/3;border-radius:var(--r);overflow:hidden;background:var(--panel);border:1px solid var(--line)}
 .media img,.media video{width:100%;height:100%;object-fit:cover;display:block}
-.media.prompt{padding:16px 16px 14px;overflow:auto;font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;font-size:12.5px;line-height:1.55;color:#dcd8d0}
+/* ползунок «Было / Стало» */
+.cmp{--p:50%;position:relative;width:100%;height:100%;cursor:ew-resize;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cmp img{position:absolute;inset:0;pointer-events:none;-webkit-user-drag:none}
+.cmp .before{clip-path:inset(0 calc(100% - var(--p)) 0 0)}
+.cmp .bar{position:absolute;top:0;bottom:0;left:var(--p);width:2px;margin-left:-1px;background:#fff;pointer-events:none}
+.cmp .knob{position:absolute;top:50%;left:var(--p);width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff;color:#15120c;display:grid;place-items:center;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.45);transition:transform .2s}
+.cmp:hover .knob,.cmp.drag .knob{transform:scale(1.1)}
+.cmp .knob svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cmp .tag{position:absolute;bottom:14px;padding:6px 16px;border-radius:999px;background:#fff;color:#15120c;font-size:14px;font-weight:600;pointer-events:none}
+.cmp .tag.l{left:14px}.cmp .tag.r{right:14px}
+.cmp input{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+.cmp input:focus-visible ~ .knob{outline:3px solid var(--accent);outline-offset:3px}
+.media.prompt{aspect-ratio:auto;padding:18px 20px 16px;overflow:auto;font-family:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;font-size:12.5px;line-height:1.55;color:#dcd8d0}
 .media.prompt i{font-style:normal;display:inline-block;width:7px;height:1.1em;margin-left:2px;vertical-align:text-bottom;background:var(--accent);animation:caret 1s steps(1) infinite}
 @keyframes caret{50%{opacity:0}}
 .step .who{display:flex;align-items:center;gap:10px;margin:16px 0 6px}
@@ -179,9 +188,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .grid.course{grid-template-columns:1fr 1fr}
   .grid.course .card:first-child{grid-column:1/-1}
   .grid.feature{gap:20px}
-  .flow{grid-template-columns:1fr 1fr;gap:26px 14px}
-  .step .frame::after{display:none}
-  .ex{margin-top:44px}
+  .flow{grid-template-columns:1fr;gap:28px}
   .ai-grid{grid-template-columns:1fr 1fr;gap:12px}
   .ai{padding:20px 16px}
   .skills{grid-template-columns:1fr 1fr}
@@ -194,11 +201,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .hint{display:none}
 }
 @media (max-width:600px){
-  .ai-grid,.flow{grid-template-columns:1fr}
+  .ai-grid{grid-template-columns:1fr}
   .ai{display:grid;grid-template-columns:52px 1fr;column-gap:14px;align-items:start}
   .ai .logo{width:52px;height:52px;margin:0;grid-row:1/3}
   .ai .logo svg{width:44px;height:44px}
-  .media.prompt{aspect-ratio:auto;font-size:13px}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -237,17 +243,19 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </div>
 </section>
 
+<section class="block" id="s-example" hidden>
+  <div class="wrap">
+    <div class="head"><span class="num">ИИ</span><h2 id="exTitle"></h2><p id="exNote"></p></div>
+    <div class="flow" id="aiFlow"></div>
+  </div>
+</section>
+
 <main id="works"></main>
 
 <section class="block" id="s-ai" hidden>
   <div class="wrap">
     <div class="head"><span class="num" id="aiNum"></span><h2 id="aiTitle"></h2><p id="aiNote"></p></div>
     <div class="ai-grid" id="aiGrid"></div>
-    <div class="ex" id="aiEx" hidden>
-      <h3 id="exTitle"></h3>
-      <p id="exNote"></p>
-      <div class="flow" id="aiFlow"></div>
-    </div>
   </div>
 </section>
 
@@ -404,11 +412,28 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     // пример: одна фотография проходит через три нейросети
     var ex = P.ai.example;
     if (ex && ex.steps && ex.steps.length) {
-      $("aiEx").hidden = false; $("exTitle").textContent = ex.title; $("exNote").textContent = ex.note || "";
+      $("s-example").hidden = false; $("exTitle").textContent = ex.title; $("exNote").textContent = ex.note || "";
       var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       ex.steps.forEach(function(s, i){
-        var st = el("div", "step"), fr = el("div", "frame"), m = el("div", "media" + (s.kind === "prompt" ? " prompt" : ""));
+        var st = el("div", "step" + (s.kind === "prompt" ? " wide" : "")), fr = el("div", "frame"), m = el("div", "media" + (s.kind === "prompt" ? " prompt" : ""));
         if (s.kind === "image") { var im = el("img"); im.src = s.src; im.alt = s.label; im.loading = "lazy"; m.appendChild(im) }
+        else if (s.kind === "compare") {
+          // ползунок «Было / Стало»: верхний снимок обрезается по линии
+          var c = el("div", "cmp"), ia = el("img"), ib = el("img", "before"), rg = el("input"), kn = el("span", "knob");
+          ia.src = s.after; ia.alt = "После: " + s.label; ib.src = s.before; ib.alt = "До: исходная фотография";
+          ia.draggable = false; ib.draggable = false;
+          rg.type = "range"; rg.min = 0; rg.max = 100; rg.value = 50; rg.setAttribute("aria-label", "Сравнение: было и стало");
+          kn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg>';
+          function setP(v){ v = Math.max(0, Math.min(100, v)); c.style.setProperty("--p", v + "%"); rg.value = v }
+          function fromX(e){ var r = c.getBoundingClientRect(); setP((e.clientX - r.left) / r.width * 100) }
+          c.addEventListener("pointerdown", function(e){ c.classList.add("drag"); try { c.setPointerCapture(e.pointerId) } catch (x) {} fromX(e) });
+          c.addEventListener("pointermove", function(e){ if (c.classList.contains("drag")) fromX(e) });
+          ["pointerup", "pointercancel"].forEach(function(n){ c.addEventListener(n, function(){ c.classList.remove("drag") }) });
+          rg.addEventListener("input", function(){ setP(+rg.value) });
+          c.appendChild(ia); c.appendChild(ib); c.appendChild(el("span", "bar"));
+          c.appendChild(el("span", "tag l", "Было")); c.appendChild(el("span", "tag r", "Стало"));
+          c.appendChild(rg); c.appendChild(kn); m.appendChild(c);
+        }
         else if (s.kind === "video") {
           var v = el("video"); v.muted = true; v.loop = true; v.playsInline = true; v.preload = "metadata";
           if (s.poster) v.poster = s.poster; v.src = s.src; v.setAttribute("aria-label", s.label); m.appendChild(v);
@@ -435,7 +460,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
         if (s.tool && LOGOS[s.tool]) { var mi = el("span", "mini lg-" + s.tool); mi.innerHTML = LOGOS[s.tool]; mi.setAttribute("aria-hidden", "true"); who.appendChild(mi) }
         who.appendChild(el("b", null, s.label)); st.appendChild(who);
         if (s.kind !== "prompt") st.appendChild(el("p", null, s.text));
-        else st.appendChild(el("p", null, "Описываю задачу своими словами — он превращает её в точный промт для генерации."));
+        else st.appendChild(el("p", null, s.note || ""));
         $("aiFlow").appendChild(st);
       });
     }
