@@ -44,6 +44,20 @@ h1{font-size:clamp(46px,9vw,128px);line-height:.95;letter-spacing:-.035em;font-w
 .facts{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:34px;font-size:14px;color:#cfcbc3}
 .facts b{color:var(--text);font-weight:650}
 
+/* инструменты на первом экране и подсветка по краям страницы */
+.tools{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:26px}
+.tools .lbl{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:#cfcbc3;margin-right:8px}
+.tool{--c:#e9b872;width:54px;height:54px;border-radius:16px;display:grid;place-items:center;background:rgba(15,15,18,.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);transition:border-color .3s,box-shadow .3s,transform .3s}
+.tool svg{width:30px;height:30px;overflow:visible}
+.tool:hover,.tool.active,.tool:focus-visible{border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 30px -2px var(--c);transform:translateY(-3px);outline:none}
+#tagline b{color:var(--tc,var(--accent));font-weight:650}
+#tagline.sw{animation:tag-in .35s ease}
+@keyframes tag-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.glow{--g:#e9b872;position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity .45s,box-shadow .45s;
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--g) 75%,transparent),inset 0 0 150px 24px color-mix(in srgb,var(--g) 50%,transparent)}
+.glow.on{opacity:1}
+.lg-premiere svg{animation:ai-pulse 3s ease-in-out infinite}
+
 /* секции */
 section.block{padding:88px 0 8px}
 .head{display:flex;align-items:baseline;gap:20px;margin-bottom:30px;border-top:1px solid var(--line);padding-top:26px}
@@ -160,11 +174,14 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .shot img,.shot video,.btn,.play{transition:none}
-  .ai .logo svg,.ai .logo svg *{animation:none!important}
+  [class*="lg-"] svg,[class*="lg-"] svg *,#tagline.sw{animation:none!important}
+  .glow,.tool{transition:none}
 }
 </style>
 </head>
 <body>
+
+<div class="glow" id="glow" aria-hidden="true"></div>
 
 <header class="top" id="top">
   <div class="wrap">
@@ -187,6 +204,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       <button class="btn ghost" id="playFirst">▶ Включить первый ролик</button>
     </div>
     <div class="facts" id="facts"></div>
+    <div class="tools" id="tools"></div>
   </div>
 </section>
 
@@ -295,6 +313,46 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     gemini: '<svg viewBox="0 0 24 24"><defs><linearGradient id="gmn" x1="2" y1="20" x2="22" y2="4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4285F4"/><stop offset=".5" stop-color="#9B72CB"/><stop offset="1" stop-color="#D96570"/></linearGradient></defs><path fill="url(#gmn)" d="M12 24A14.3 14.3 0 0 0 0 12 14.3 14.3 0 0 0 12 0a14.3 14.3 0 0 0 12 12 14.3 14.3 0 0 0-12 12Z"/></svg>',
     seedance: '<svg viewBox="0 0 24 24" fill="none"><defs><linearGradient id="sdn" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3EE0CF"/><stop offset="1" stop-color="#3C8CFF"/></linearGradient></defs><circle class="ring" cx="12" cy="12" r="10.5" stroke="url(#sdn)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="20 8 6 8 12 12"/><path class="tri" fill="url(#sdn)" d="M9.3 7.2v9.6a.6.6 0 0 0 .92.5l7.4-4.8a.6.6 0 0 0 0-1l-7.4-4.8a.6.6 0 0 0-.92.5Z"/></svg>'
   };
+  LOGOS.premiere = '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#00005B"/><text x="12" y="16.4" text-anchor="middle" font-family="Segoe UI,Helvetica,Arial,sans-serif" font-weight="700" font-size="11.5" fill="#9999FF">Pr</text></svg>';
+
+  // первый экран: логотипы инструментов; наведение меняет подсветку страницы и описание
+  var GLOW = { chatgpt: "#19c37d", claude: "#d97757", gemini: "#7c8cff", seedance: "#3ee0cf", premiere: "#9999ff" };
+  var heroTools = ((P.ai && P.ai.tools) || []).concat(P.editor ? [P.editor] : []);
+  if (heroTools.length) {
+    var box = $("tools"), tag = $("tagline"), glow = $("glow"), sticky = null;
+    box.appendChild(el("span", "lbl", "Инструменты"));
+    function swap(){ tag.classList.remove("sw"); void tag.offsetWidth; tag.classList.add("sw") }
+    function show(t, btn){
+      if (!tag.style.minHeight) tag.style.minHeight = tag.offsetHeight + "px";
+      var col = GLOW[t.id] || "#e9b872";
+      tag.textContent = ""; tag.style.setProperty("--tc", col);
+      tag.appendChild(el("b", null, t.name));
+      tag.appendChild(document.createTextNode(" — " + t.text.charAt(0).toLowerCase() + t.text.slice(1) + "."));
+      swap(); glow.style.setProperty("--g", col); glow.classList.add("on");
+      [].forEach.call(box.querySelectorAll(".tool"), function(b){ b.classList.toggle("active", b === btn) });
+    }
+    function reset(){
+      if (sticky) { show(sticky.t, sticky.btn); return }
+      tag.textContent = P.tagline; swap(); glow.classList.remove("on");
+      [].forEach.call(box.querySelectorAll(".tool"), function(b){ b.classList.remove("active") });
+    }
+    heroTools.forEach(function(t){
+      var b = el("button", "tool lg-" + t.id); b.type = "button"; b.innerHTML = LOGOS[t.id] || "";
+      b.style.setProperty("--c", GLOW[t.id] || "#e9b872"); b.setAttribute("aria-label", t.name + ": " + t.text);
+      b.addEventListener("mouseenter", function(){ show(t, b) });
+      b.addEventListener("mouseleave", reset);
+      b.addEventListener("focus", function(){ show(t, b) });
+      b.addEventListener("blur", reset);
+      // нажатие закрепляет выбор (удобно на телефоне), повторное — снимает
+      b.addEventListener("click", function(e){
+        e.stopPropagation();
+        if (sticky && sticky.btn === b) { sticky = null; reset() } else { sticky = { t: t, btn: b }; show(t, b) }
+      });
+      box.appendChild(b);
+    });
+    document.addEventListener("click", function(){ if (sticky) { sticky = null; reset() } });
+  }
+
   var nextNum = P.sections.length + 1;
   if (P.ai && P.ai.tools && P.ai.tools.length) {
     $("s-ai").hidden = false;
