@@ -296,7 +296,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   </aside>
 </div>
 
-<script src="works.js"></script>
+<!-- метка времени не даёт браузеру показывать старые тексты из кеша -->
+<script>document.write('<script src="works.js?t=' + Date.now() + '"><\/script>')</script>
 <script>
 (function(){
   var P = window.PORTFOLIO, $ = function(id){return document.getElementById(id)};
@@ -398,8 +399,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
   var nextNum = P.sections.length + 1;
   if (P.ai && P.ai.tools && P.ai.tools.length) {
-    $("s-ai").hidden = false;
-    $("aiNum").textContent = ("0" + nextNum++).slice(-2);
+    // карточки нейросетей внизу страницы показываются, только если в works.js стоит showCards: true
+    $("s-ai").hidden = !P.ai.showCards;
+    if (P.ai.showCards) $("aiNum").textContent = ("0" + nextNum++).slice(-2);
     $("aiTitle").textContent = P.ai.title; $("aiNote").textContent = P.ai.note || "";
     P.ai.tools.forEach(function(t){
       var d = el("div", "ai"), lg = el("div", "logo lg-" + t.id);
@@ -407,7 +409,10 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       d.appendChild(lg); d.appendChild(el("b", null, t.name)); d.appendChild(el("span", null, t.text));
       $("aiGrid").appendChild(d);
     });
-    var na = el("a", null, "Нейросети"); na.href = "#s-ai"; $("nav").appendChild(na);
+    if (P.ai.example || P.ai.showCards) {
+      var na = el("a", null, "Нейросети"); na.href = P.ai.example ? "#s-example" : "#s-ai";
+      $("nav").insertBefore(na, $("nav").firstChild);
+    }
 
     // пример: одна фотография проходит через три нейросети
     var ex = P.ai.example;
