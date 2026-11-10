@@ -268,6 +268,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   if (row.children.length) {
     $("contact").hidden = false; $("navContact").hidden = false;
     if (c.city) $("contactNote").textContent += " " + c.city + ".";
+    // с контактами вторая кнопка первого экрана ведёт к заказу, а не к ролику
+    var pf = $("playFirst"); pf.textContent = "Обсудить проект"; pf.dataset.contact = "1";
   }
 
   // превью: при наведении, а на тач-экранах — когда карточка в центре экрана
@@ -333,7 +335,9 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
       document.fullscreenElement ? document.exitFullscreen() : vid.requestFullscreen();
     }
   });
-  $("playFirst").onclick = function(){ open(all[0].id) };
+  $("playFirst").onclick = function(){
+    if (this.dataset.contact) $("contact").scrollIntoView({ behavior: "smooth" }); else open(all[0].id);
+  };
 
   // шапка и прямая ссылка на ролик (index.html#japan)
   var top = $("top");
